@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notewise Tab - Web & Tablet Preview</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --primary-light: #dbeafe;
+            --bg-canvas: #e2e8f0;
+            --bg-surface: #ffffff;
+            --bg-subtle: #f8fafc;
+            --border-subtle: #cbd5e1;
+            --text-main: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-canvas);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Tablet Navigation Rail (Left) */
+        .nav-rail {
+            width: 68px;
+            background: #ffffff;
+            border-right: 1px solid var(--border-subtle);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 14px 0;
+            z-index: 10;
+        }
+
+        .logo-circle {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 18px;
+            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+            margin-bottom: 24px;
+        }
+
+        .rail-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            transition: all 0.15s ease;
+        }
+
+        .rail-btn svg {
+            width: 22px;
+            height: 22px;
+            fill: currentColor;
+        }
+
+        .rail-btn.active {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+        .rail-btn:hover:not(.active) {
+            background: #f1f5f9;
+        }
+
+        /* Main Workspace Container */
+        .workspace {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Multi-Tab Bar (Top) */
+        .tab-bar {
+            height: 46px;
+            background: #eef2f6;
+            border-bottom: 1px solid #d8e1ea;
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .tab-bar::-webkit-scrollbar {
+            height: 3px;
+        }
+        .tab-bar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        .tab-item {
+            height: 36px;
+            padding: 0 12px;
+            border-radius: 8px 8px 0 0;
+            background: transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.15s ease;
+            margin-right: 4px;
+            border-bottom: 2px solid transparent;
+        }
+
+        .tab-item.active {
+            background: #ffffff;
+            color: var(--text-main);
+            font-weight: 600;
+            border-bottom: 2px solid var(--primary);
+            box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.03);
+        }
+
+        .tab-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+        }
+
+        .tab-close {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 1;
+        }
+
+        .tab-close:hover {
+            background: #e2e8f0;
+            color: var(--text-main);
+        }
+
+        .new-tab-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            border: none;
+            background: transparent;
+            color: var(--primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            transition: background 0.15s ease;
+        }
+
+        .new-tab-btn:hover {
+            background: var(--primary-light);
+        }
+
+        /* Stylus Toolbar */
+        .stylus-toolbar {
+            height: 52px;
+            background: #ffffff;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            z-index: 5;
+        }
+
+        .tool-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tool-btn {
+            height: 36px;
+            padding: 0 10px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            background: transparent;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.15s ease;
+        }
+
+        .tool-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        .tool-btn.active {
+            background: var(--primary-light);
+            color: var(--primary);
+            border-color: #bfdbfe;
+        }
+
+        .tool-btn:hover:not(.active) {
+            background: #f1f5f9;
+        }
+
+        /* Color Chips */
+        .color-chips {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0 8px;
+            border-left: 1px solid var(--border-subtle);
+            border-right: 1px solid var(--border-subtle);
+        }
+
+        .color-chip {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 0 1px var(--border-subtle);
+            transition: transform 0.1s ease;
+        }
+
+        .color-chip.active {
+            transform: scale(1.22);
+            box-shadow: 0 0 0 2px var(--primary);
+        }
+
+        /* Size Selector */
+        .size-badge {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            padding: 4px 8px;
+            border-radius: 6px;
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .size-slider {
+            width: 80px;
+            cursor: pointer;
+        }
+
+        /* Action Buttons */
+        .action-icon-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            transition: background 0.15s ease;
+        }
+
+        .action-icon-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        .action-icon-btn:hover:not(:disabled) {
+            background: #f1f5f9;
+            color: var(--text-main);
+        }
+
+        .action-icon-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        /* Canvas Scroll Area */
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            background: var(--bg-canvas);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            overflow: auto;
+        }
+
+        .paper-sheet {
+            position: relative;
+            background: #ffffff;
+            width: 850px;
+            height: 1100px;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        #templateCanvas, #inkCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #inkCanvas {
+            cursor: crosshair;
+            z-index: 2;
+        }
+
+        /* Page Navigator (Bottom Floating) */
+        .page-nav {
+            position: absolute;
+            bottom: 24px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 30px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            z-index: 10;
+        }
+
+        .page-counter {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+            padding: 0 8px;
+        }
+
+        /* Select dropdowns */
+        select {
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border-subtle);
+            font-size: 12px;
+            font-weight: 500;
+            background: #ffffff;
+            color: var(--text-main);
+            cursor: pointer;
+            outline: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Left Navigation Rail -->
+    <div class="nav-rail">
+        <div class="logo-circle">N</div>
+        <button class="rail-btn active" title="Note Editor">
+            <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+        </button>
+        <button class="rail-btn" title="Notebooks Gallery" onclick="alert('Library: Displays your collection of notebooks organized by tags and folders.')">
+            <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg>
+        </button>
+    </div>
+
+    <!-- Main Workspace -->
+    <div class="workspace">
+
+        <!-- Top Multi-Document Tab Bar -->
+        <div class="tab-bar" id="tabBar">
+            <!-- Tabs rendered dynamically -->
+            <button class="new-tab-btn" id="newTabBtn" title="New Notebook Tab">+</button>
+        </div>
+
+        <!-- Stylus & Drawing Toolbar -->
+        <div class="stylus-toolbar">
+            <!-- Left Tools -->
+            <div class="tool-group">
+                <button class="tool-btn active" id="toolPen" data-tool="pen">
+                    <svg viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                    <span>Pen</span>
+                </button>
+                <button class="tool-btn" id="toolHighlighter" data-tool="highlighter">
+                    <svg viewBox="0 0 24 24"><path d="M16.56 8.94L7.62 17.89l-2.12-2.12 8.94-8.95 2.12 2.12m3.54-3.54c.78-.78.78-2.05 0-2.83L17.7 0.17c-.78-.78-2.05-.78-2.83 0l-1.84 1.84 4.95 4.95 2.12-1.56zM2 22h5l1.41-1.41-3.75-3.75L2 22z"/></svg>
+                    <span>Highlighter</span>
+                </button>
+                <button class="tool-btn" id="toolEraser" data-tool="eraser">
+                    <svg viewBox="0 0 24 24"><path d="M15.14 3c-.4 0-.8.15-1.11.45l-9.58 9.58c-.61.61-.61 1.61 0 2.22l4.83 4.83c.3.3.71.46 1.12.46h5.36c.55 0 1-.45 1-1s-.45-1-1-1h-4.54l6.14-6.14c.61-.61.61-1.61 0-2.22l-4.83-4.83c-.31-.3-.72-.45-1.12-.45z"/></svg>
+                    <span>Eraser</span>
+                </button>
+            </div>
+
+            <!-- Color Palette -->
+            <div class="color-chips" id="colorChips">
+                <div class="color-chip active" data-color="#0f172a" style="background:#0f172a;"></div>
+                <div class="color-chip" data-color="#2563eb" style="background:#2563eb;"></div>
+                <div class="color-chip" data-color="#dc2626" style="background:#dc2626;"></div>
+                <div class="color-chip" data-color="#16a34a" style="background:#16a34a;"></div>
+                <div class="color-chip" data-color="#9333ea" style="background:#9333ea;"></div>
+                <div class="color-chip" data-color="#ffe066" style="background:#ffe066;"></div>
+                <div class="color-chip" data-color="#f472b6" style="background:#f472b6;"></div>
+            </div>
+
+            <!-- Stroke Size Slider -->
+            <div class="tool-group">
+                <span class="size-badge">
+                    <span id="strokeSizeVal">4px</span>
+                    <input type="range" class="size-slider" id="strokeSize" min="1" max="24" value="4">
+                </span>
+            </div>
+
+            <!-- Template & Paper Tone -->
+            <div class="tool-group">
+                <select id="templateSelect" title="Page Template">
+                    <option value="lined">Lined / Ruled</option>
+                    <option value="grid">Grid / Graph</option>
+                    <option value="dotted">Dot Matrix</option>
+                    <option value="cornell">Cornell Notes</option>
+                    <option value="blank">Blank Paper</option>
+                </select>
+
+                <select id="paperColorSelect" title="Paper Color">
+                    <option value="#ffffff">Pure White</option>
+                    <option value="#faf7ee">Warm Ivory</option>
+                    <option value="#f4ecd8">Vintage Sepia</option>
+                    <option value="#1e232a">Graphite Dark</option>
+                </select>
+            </div>
+
+            <!-- Actions: Undo, Redo, Clear -->
+            <div class="tool-group">
+                <button class="action-icon-btn" id="undoBtn" title="Undo (Ctrl+Z)" disabled>
+                    <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
+                </button>
+                <button class="action-icon-btn" id="redoBtn" title="Redo (Ctrl+Y)" disabled>
+                    <svg viewBox="0 0 24 24"><path d="M18.4 10.6C16.55 8.99 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22L3.9 16c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.73.72 5.12 1.88L13 16h9V7l-3.6 3.6z"/></svg>
+                </button>
+                <button class="action-icon-btn" id="clearBtn" title="Clear Page">
+                    <svg viewBox="0 0 24 24"><path d="M15 4V3H9v1H4v2h1v13c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V6h1V4h-5zm2 15H7V6h10v13z"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Canvas Area -->
+        <div class="canvas-container">
+            <div class="paper-sheet" id="paperSheet">
+                <canvas id="templateCanvas" width="850" height="1100"></canvas>
+                <canvas id="inkCanvas" width="850" height="1100"></canvas>
+            </div>
+
+            <!-- Bottom Floating Page Switcher -->
+            <div class="page-nav">
+                <button class="action-icon-btn" id="prevPageBtn" title="Previous Page" disabled>
+                    <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+                </button>
+                <span class="page-counter" id="pageCounter">Page 1 / 1</span>
+                <button class="action-icon-btn" id="nextPageBtn" title="Next Page" disabled>
+                    <svg viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+                </button>
+                <button class="action-icon-btn" id="addPageBtn" title="Add New Page">
+                    <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data State
+        let notebooks = [
+            {
+                id: 'nb-1',
+                title: 'Physics Lecture Notes',
+                color: '#2563eb',
+                template: 'lined',
+                paperColor: '#ffffff',
+                pages: [[]]
+            },
+            {
+                id: 'nb-2',
+                title: 'Project Architecture',
+                color: '#059669',
+                template: 'grid',
+                paperColor: '#faf7ee',
+                pages: [[]]
+            }
+        ];
+
+        let activeNotebookId = 'nb-1';
+        let currentPageIndex = 0;
+
+        let currentTool = 'pen';
+        let currentColor = '#0f172a';
+        let currentWidth = 4;
+        let isDrawing = false;
+        let activeStroke = [];
+        let undoStack = [];
+        let redoStack = [];
+
+        // DOM elements
+        const tabBar = document.getElementById('tabBar');
+        const newTabBtn = document.getElementById('newTabBtn');
+        const paperSheet = document.getElementById('paperSheet');
+        const templateCanvas = document.getElementById('templateCanvas');
+        const inkCanvas = document.getElementById('inkCanvas');
+        const templateCtx = templateCanvas.getContext('2d');
+        const inkCtx = inkCanvas.getContext('2d');
+
+        const strokeSizeInput = document.getElementById('strokeSize');
+        const strokeSizeVal = document.getElementById('strokeSizeVal');
+        const templateSelect = document.getElementById('templateSelect');
+        const paperColorSelect = document.getElementById('paperColorSelect');
+        const undoBtn = document.getElementById('undoBtn');
+        const redoBtn = document.getElementById('redoBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const prevPageBtn = document.getElementById('prevPageBtn');
+        const nextPageBtn = document.getElementById('nextPageBtn');
+        const addPageBtn = document.getElementById('addPageBtn');
+        const pageCounter = document.getElementById('pageCounter');
+
+        // Initialize
+        function init() {
+            renderTabs();
+            renderActivePage();
+            setupEventListeners();
+        }
+
+        function getActiveNotebook() {
+            return notebooks.find(n => n.id === activeNotebookId) || notebooks[0];
+        }
+
+        // Render Tabs
+        function renderTabs() {
+            // Remove existing tabs except newTabBtn
+            const existing = tabBar.querySelectorAll('.tab-item');
+            existing.forEach(e => e.remove());
+
+            notebooks.forEach(nb => {
+                const isActive = nb.id === activeNotebookId;
+                const tab = document.createElement('div');
+                tab.className = `tab-item ${isActive ? 'active' : ''}`;
+                tab.innerHTML = `
+                    <div class="tab-dot" style="background:${nb.color}"></div>
+                    <span>${nb.title}</span>
+                    <button class="tab-close" title="Close Tab">&times;</button>
+                `;
+
+                tab.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('tab-close')) {
+                        closeTab(nb.id);
+                    } else {
+                        switchTab(nb.id);
+                    }
+                });
+
+                tabBar.insertBefore(tab, newTabBtn);
+            });
+        }
+
+        function switchTab(id) {
+            if (activeNotebookId === id) return;
+            activeNotebookId = id;
+            currentPageIndex = 0;
+            undoStack = [];
+            redoStack = [];
+            renderTabs();
+            renderActivePage();
+        }
+
+        function closeTab(id) {
+            if (notebooks.length === 1) {
+                alert("At least one notebook tab must remain open.");
+                return;
+            }
+            notebooks = notebooks.filter(n => n.id !== id);
+            if (activeNotebookId === id) {
+                activeNotebookId = notebooks[0].id;
+                currentPageIndex = 0;
+            }
+            renderTabs();
+            renderActivePage();
+        }
+
+        function createNewTab() {
+            const count = notebooks.length + 1;
+            const colors = ['#2563eb', '#dc2626', '#16a34a', '#9333ea', '#d97706'];
+            const newNb = {
+                id: 'nb-' + Date.now(),
+                title: `Notebook ${count}`,
+                color: colors[(count - 1) % colors.length],
+                template: 'lined',
+                paperColor: '#ffffff',
+                pages: [[]]
+            };
+            notebooks.push(newNb);
+            switchTab(newNb.id);
+        }
+
+        // Render Page Canvas & Background Template
+        function renderActivePage() {
+            const nb = getActiveNotebook();
+            if (!nb.pages[currentPageIndex]) {
+                nb.pages[currentPageIndex] = [];
+            }
+
+            // Sync controls
+            templateSelect.value = nb.template;
+            paperColorSelect.value = nb.paperColor;
+            paperSheet.style.backgroundColor = nb.paperColor;
+
+            drawTemplate(nb.template, nb.paperColor);
+            redrawInk(nb.pages[currentPageIndex]);
+            updatePageControls();
+            updateUndoRedo();
+        }
+
+        function drawTemplate(type, paperColor) {
+            templateCtx.clearRect(0, 0, templateCanvas.width, templateCanvas.height);
+            const w = templateCanvas.width;
+            const h = templateCanvas.height;
+
+            const isDark = paperColor === '#1e232a';
+            const mainLine = isDark ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.12)';
+            const redMargin = isDark ? 'rgba(244,63,94,0.3)' : 'rgba(244,63,94,0.25)';
+
+            templateCtx.lineWidth = 1;
+
+            if (type === 'lined') {
+                const spacing = 36;
+                const marginX = 80;
+
+                // Red vertical margin
+                templateCtx.strokeStyle = redMargin;
+                templateCtx.beginPath();
+                templateCtx.moveTo(marginX, 0);
+                templateCtx.lineTo(marginX, h);
+                templateCtx.stroke();
+
+                // Ruled lines
+                templateCtx.strokeStyle = mainLine;
+                for (let y = 80; y < h; y += spacing) {
+                    templateCtx.beginPath();
+                    templateCtx.moveTo(0, y);
+                    templateCtx.lineTo(w, y);
+                    templateCtx.stroke();
+                }
+            } else if (type === 'grid') {
+                const spacing = 28;
+                templateCtx.strokeStyle = mainLine;
+                templateCtx.lineWidth = 0.8;
+
+                for (let x = spacing; x < w; x += spacing) {
+                    templateCtx.beginPath();
+                    templateCtx.moveTo(x, 0);
+                    templateCtx.lineTo(x, h);
+                    templateCtx.stroke();
+                }
+                for (let y = spacing; y < h; y += spacing) {
+                    templateCtx.beginPath();
+                    templateCtx.moveTo(0, y);
+                    templateCtx.lineTo(w, y);
+                    templateCtx.stroke();
+                }
+            } else if (type === 'dotted') {
+                const spacing = 28;
+                templateCtx.fillStyle = isDark ? 'rgba(255,255,255,0.22)' : 'rgba(0,0,0,0.18)';
+                for (let y = spacing; y < h; y += spacing) {
+                    for (let x = spacing; x < w; x += spacing) {
+                        templateCtx.beginPath();
+                        templateCtx.arc(x, y, 1.2, 0, Math.PI * 2);
+                        templateCtx.fill();
+                    }
+                }
+            } else if (type === 'cornell') {
+                const cueX = w * 0.28;
+                const sumY = h - 160;
+                templateCtx.strokeStyle = redMargin;
+                templateCtx.lineWidth = 1.5;
+
+                // Header
+                templateCtx.beginPath();
+                templateCtx.moveTo(0, 70);
+                templateCtx.lineTo(w, 70);
+                templateCtx.stroke();
+
+                // Cue line
+                templateCtx.beginPath();
+                templateCtx.moveTo(cueX, 70);
+                templateCtx.lineTo(cueX, sumY);
+                templateCtx.stroke();
+
+                // Summary line
+                templateCtx.beginPath();
+                templateCtx.moveTo(0, sumY);
+                templateCtx.lineTo(w, sumY);
+                templateCtx.stroke();
+
+                // Note lines in body
+                templateCtx.strokeStyle = mainLine;
+                templateCtx.lineWidth = 0.9;
+                for (let y = 104; y < sumY; y += 34) {
+                    templateCtx.beginPath();
+                    templateCtx.moveTo(cueX, y);
+                    templateCtx.lineTo(w, y);
+                    templateCtx.stroke();
+                }
+            }
+        }
+
+        // Draw Ink Strokes with Bézier Curves
+        function redrawInk(strokes) {
+            inkCtx.clearRect(0, 0, inkCanvas.width, inkCanvas.height);
+            strokes.forEach(stroke => drawSmoothStroke(inkCtx, stroke));
+        }
+
+        function drawSmoothStroke(ctx, stroke) {
+            if (!stroke.points || stroke.points.length === 0) return;
+            ctx.save();
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            if (stroke.tool === 'highlighter') {
+                ctx.globalAlpha = 0.4;
+                ctx.lineWidth = stroke.width * 2.8;
+                ctx.strokeStyle = stroke.color;
+            } else {
+                ctx.globalAlpha = 1.0;
+                ctx.lineWidth = stroke.width;
+                ctx.strokeStyle = stroke.color;
+            }
+
+            const pts = stroke.points;
+            if (pts.length === 1) {
+                ctx.beginPath();
+                ctx.arc(pts[0].x, pts[0].y, ctx.lineWidth / 2, 0, Math.PI * 2);
+                ctx.fillStyle = ctx.strokeStyle;
+                ctx.fill();
+                ctx.restore();
+                return;
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(pts[0].x, pts[0].y);
+
+            if (pts.length === 2) {
+                ctx.lineTo(pts[1].x, pts[1].y);
+            } else {
+                for (let i = 1; i < pts.length - 1; i++) {
+                    const midX = (pts[i].x + pts[i + 1].x) / 2;
+                    const midY = (pts[i].y + pts[i + 1].y) / 2;
+                    ctx.quadraticCurveTo(pts[i].x, pts[i].y, midX, midY);
+                }
+                ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
+            }
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // Interaction Event Listeners
+        function setupEventListeners() {
+            newTabBtn.addEventListener('click', createNewTab);
+
+            // Tools
+            const toolBtns = [document.getElementById('toolPen'), document.getElementById('toolHighlighter'), document.getElementById('toolEraser')];
+            toolBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    toolBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentTool = btn.dataset.tool;
+                });
+            });
+
+            // Color Chips
+            const colorChips = document.querySelectorAll('.color-chip');
+            colorChips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    colorChips.forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+                    currentColor = chip.dataset.color;
+                });
+            });
+
+            // Stroke Size
+            strokeSizeInput.addEventListener('input', (e) => {
+                currentWidth = parseInt(e.target.value);
+                strokeSizeVal.textContent = currentWidth + 'px';
+            });
+
+            // Template & Color
+            templateSelect.addEventListener('change', (e) => {
+                const nb = getActiveNotebook();
+                nb.template = e.target.value;
+                drawTemplate(nb.template, nb.paperColor);
+            });
+
+            paperColorSelect.addEventListener('change', (e) => {
+                const nb = getActiveNotebook();
+                nb.paperColor = e.target.value;
+                paperSheet.style.backgroundColor = nb.paperColor;
+                drawTemplate(nb.template, nb.paperColor);
+            });
+
+            // Undo / Redo / Clear
+            undoBtn.addEventListener('click', undo);
+            redoBtn.addEventListener('click', redo);
+            clearBtn.addEventListener('click', clearPage);
+
+            // Page navigation
+            prevPageBtn.addEventListener('click', () => goToPage(currentPageIndex - 1));
+            nextPageBtn.addEventListener('click', () => goToPage(currentPageIndex + 1));
+            addPageBtn.addEventListener('click', addNewPage);
+
+            // Pointer Drawing (Stylus & Mouse)
+            inkCanvas.addEventListener('pointerdown', handlePointerDown);
+            inkCanvas.addEventListener('pointermove', handlePointerMove);
+            window.addEventListener('pointerup', handlePointerUp);
+        }
+
+        function getCanvasPoint(e) {
+            const rect = inkCanvas.getBoundingClientRect();
+            const scaleX = inkCanvas.width / rect.width;
+            const scaleY = inkCanvas.height / rect.height;
+            return {
+                x: (e.clientX - rect.left) * scaleX,
+                y: (e.clientY - rect.top) * scaleY
+            };
+        }
+
+        function handlePointerDown(e) {
+            isDrawing = true;
+            const pt = getCanvasPoint(e);
+
+            if (currentTool === 'eraser') {
+                eraseStrokesNear(pt);
+            } else {
+                activeStroke = {
+                    tool: currentTool,
+                    color: currentColor,
+                    width: currentWidth,
+                    points: [pt]
+                };
+            }
+        }
+
+        function handlePointerMove(e) {
+            if (!isDrawing) return;
+            const pt = getCanvasPoint(e);
+
+            if (currentTool === 'eraser') {
+                eraseStrokesNear(pt);
+            } else {
+                activeStroke.points.push(pt);
+                const nb = getActiveNotebook();
+                redrawInk([...nb.pages[currentPageIndex], activeStroke]);
+            }
+        }
+
+        function handlePointerUp() {
+            if (!isDrawing) return;
+            isDrawing = false;
+            const nb = getActiveNotebook();
+
+            if (currentTool !== 'eraser' && activeStroke && activeStroke.points.length > 0) {
+                undoStack.push([...nb.pages[currentPageIndex]]);
+                redoStack = [];
+                nb.pages[currentPageIndex].push(activeStroke);
+                redrawInk(nb.pages[currentPageIndex]);
+                updateUndoRedo();
+            }
+            activeStroke = null;
+        }
+
+        function eraseStrokesNear(point, radius = 22) {
+            const nb = getActiveNotebook();
+            const original = nb.pages[currentPageIndex];
+            const filtered = original.filter(stroke => {
+                return !stroke.points.some(p => Math.hypot(p.x - point.x, p.y - point.y) < radius);
+            });
+
+            if (filtered.length !== original.length) {
+                undoStack.push([...original]);
+                redoStack = [];
+                nb.pages[currentPageIndex] = filtered;
+                redrawInk(filtered);
+                updateUndoRedo();
+            }
+        }
+
+        function undo() {
+            if (undoStack.length === 0) return;
+            const nb = getActiveNotebook();
+            redoStack.push([...nb.pages[currentPageIndex]]);
+            nb.pages[currentPageIndex] = undoStack.pop();
+            redrawInk(nb.pages[currentPageIndex]);
+            updateUndoRedo();
+        }
+
+        function redo() {
+            if (redoStack.length === 0) return;
+            const nb = getActiveNotebook();
+            undoStack.push([...nb.pages[currentPageIndex]]);
+            nb.pages[currentPageIndex] = redoStack.pop();
+            redrawInk(nb.pages[currentPageIndex]);
+            updateUndoRedo();
+        }
+
+        function clearPage() {
+            const nb = getActiveNotebook();
+            if (nb.pages[currentPageIndex].length === 0) return;
+            undoStack.push([...nb.pages[currentPageIndex]]);
+            redoStack = [];
+            nb.pages[currentPageIndex] = [];
+            redrawInk([]);
+            updateUndoRedo();
+        }
+
+        function updateUndoRedo() {
+            undoBtn.disabled = undoStack.length === 0;
+            redoBtn.disabled = redoStack.length === 0;
+        }
+
+        function updatePageControls() {
+            const nb = getActiveNotebook();
+            const total = nb.pages.length;
+            pageCounter.textContent = `Page ${currentPageIndex + 1} / ${total}`;
+            prevPageBtn.disabled = currentPageIndex === 0;
+            nextPageBtn.disabled = currentPageIndex >= total - 1;
+        }
+
+        function goToPage(index) {
+            const nb = getActiveNotebook();
+            if (index < 0 || index >= nb.pages.length) return;
+            currentPageIndex = index;
+            undoStack = [];
+            redoStack = [];
+            renderActivePage();
+        }
+
+        function addNewPage() {
+            const nb = getActiveNotebook();
+            nb.pages.push([]);
+            goToPage(nb.pages.length - 1);
+        }
+
+        // Start
+        window.onload = init;
+    </script>
+</body>
+</html>

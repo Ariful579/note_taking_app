@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Notewise Tab</string>
+    <string name="new_notebook">New Notebook</string>
+    <string name="open_tabs">Open Tabs</string>
+    <string name="close_tab">Close Tab</string>
+    <string name="add_page">Add Page</string>
+    <string name="clear_page">Clear Page</string>
+    <string name="undo">Undo</string>
+    <string name="redo">Redo</string>
+    <string name="pen">Pen</string>
+    <string name="highlighter">Highlighter</string>
+    <string name="eraser">Eraser</string>
+    <string name="lasso">Lasso</string>
+    <string name="text_tool">Text</string>
+    <string name="shapes">Shapes</string>
+</resources>
