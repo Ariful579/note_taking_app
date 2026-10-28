@@ -11,8 +11,8 @@ jobs:
           distribution: 'temurin'
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: wrapper
-      - run: gradle assembleDebug
+          gradle-version: '8.9'
+      - run: gradle assembleDebug --stacktrace
       - uses: actions/upload-artifact@v4
         with:
           name: note-taking-app-apk
